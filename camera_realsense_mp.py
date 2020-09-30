@@ -2,11 +2,9 @@ import os
 import cv2
 from base_camera_mp import BaseCamera
 import pyrealsense2 as rs
-import io
 import numpy as np
-from threading import Event, Thread
+from threading import Thread
 import multiprocessing
-from threading import Lock
 
 # Set up Intel RealSense camera pipeline
 w, h = 640, 480
@@ -64,7 +62,7 @@ def _encodingFunc():
         depth_feature_range_max = 255
         depth_max_input = 10000 # enforcing a max valid range of 10 meters on based on the realsense camera having a depth scale of 0.001. This is needed to allow for fast compression into a single JPEG without losing a lot of precision - further tuning of this value can be done (theoretical maximum of 65536 due to depth being sent from camera as 16-bit z16 format)
         # Compression into single JPEG is also needed as streaming this via
-        # e.g. FFMPEG is possible
+        # e.g. FFMPEG is possible in this manner
         scaling_factor = (depth_feature_range_max/depth_max_input)
         depthFrame = (scaling_factor * depthFrame).astype('uint8')
         depthFrame = np.dstack((depthFrame, depthFrame, depthFrame))

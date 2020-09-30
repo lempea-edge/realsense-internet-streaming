@@ -4,7 +4,6 @@ from flask import Flask, render_template, Response
 from camera_realsense_mp import Camera
 import datetime
 import sys
-import simplejson as json
 import numpy as np
 
 #sys.tracebacklimit = 0
@@ -36,4 +35,3 @@ def video_feed():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port='5037', threaded=True, debug=False, ssl_context='adhoc')
-    #app.run(host='0.0.0.0', port='5037', threaded=True, debug=False)
