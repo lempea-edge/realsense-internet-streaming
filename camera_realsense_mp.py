@@ -1,9 +1,8 @@
-import os
 import cv2
 from base_camera_mp import BaseCamera
 import pyrealsense2 as rs
 import numpy as np
-from threading import Thread
+from turbojpeg import TurboJPEG
 import multiprocessing
 
 # Set up Intel RealSense camera pipeline
@@ -16,6 +15,9 @@ rawFrames = None
 encodedFrames = None
 jobs = None
 
+# TurboJPEG encoder instance
+jpeg = TurboJPEG()
+
 def _pipelineFunc():
     print("starting pipeline!")
     global rawFrames
@@ -26,21 +28,20 @@ def _pipelineFunc():
     colorizer = rs.colorizer()
     config = rs.config()
     config.enable_stream(rs.stream.color, w, h, rs.format.rgb8, 30)
-    config.enable_stream(rs.stream.infrared, 2, w, h, rs.format.y8, 30)
+    #config.enable_stream(rs.stream.infrared, 2, w, h, rs.format.y8, 30)
     config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 30)
     profile = pipeline.start(config)
     depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
     print("Depth scale is:", depth_scale)
     while True:
         rawFrameset = pipeline.wait_for_frames()
-        fetchedColorFrame = np.asanyarray(rawFrameset.get_color_frame().get_data())[...,::-1]
+        fetchedColorFrame = np.asanyarray(rawFrameset.get_color_frame().get_data())
         #fetchedIRFrame = np.asanyarray(rawFrameset.get_infrared_frame(2).get_data())
         fetchedDepthFrame = np.asanyarray(align.process(rawFrameset).get_depth_frame().get_data())
-        rawFrame = {
+        rawFrames.put({
         'rgb': fetchedColorFrame, 
         'depth': fetchedDepthFrame
-        }
-        rawFrames.put(rawFrame)
+        })
 
 def _encodingFunc():
     print("starting encoder!")
@@ -64,10 +65,13 @@ def _encodingFunc():
         # Compression into single JPEG is also needed as streaming this via
         # e.g. FFMPEG is possible in this manner
         scaling_factor = (depth_feature_range_max/depth_max_input)
+        colorFrameCuda = cv2.cuda_GpuMat()
+        colorFrameCuda.upload(colorFrame)
+        colorFrame = cv2.cuda.cvtColor(colorFrameCuda, cv2.COLOR_BGR2RGB).download()
         depthFrame = (scaling_factor * depthFrame).astype('uint8')
         depthFrame = np.dstack((depthFrame, depthFrame, depthFrame))
         combinedFrame = np.hstack((colorFrame, depthFrame))
-        combinedRetVal = cv2.imencode('.JPEG', combinedFrame)[1].tobytes()
+        combinedRetVal = jpeg.encode(combinedFrame)
 
         encodedFrames.put(combinedRetVal)
 

@@ -1,19 +1,9 @@
 #!/usr/bin/env python
-import os
 from flask import Flask, render_template, Response
 from camera_realsense_mp import Camera
 import datetime
-import sys
-import numpy as np
-
-#sys.tracebacklimit = 0
 
 app = Flask(__name__)
-
-@app.route('/')
-def index():
-    """Video streaming home page."""
-    return render_template('index.html')
 
 def nSecondsHavePassedSince(n, lastEpoch):
     delta = datetime.datetime.now() - lastEpoch
