@@ -30,7 +30,7 @@ pip install pyrealsense2
 The extra Python packages required to run this application are listed in
 requirements.txt, and can be installed using:
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ### Acknowledgements
