@@ -1,9 +1,7 @@
-import os
 import cv2
 from base_camera_mp import BaseCamera
 import pyrealsense2 as rs
 import numpy as np
-from threading import Thread
 import multiprocessing
 
 # Set up Intel RealSense camera pipeline
@@ -33,7 +31,7 @@ def _pipelineFunc():
     print("Depth scale is:", depth_scale)
     while True:
         rawFrameset = pipeline.wait_for_frames()
-        fetchedColorFrame = np.asanyarray(rawFrameset.get_color_frame().get_data())[...,::-1]
+        fetchedColorFrame = np.asanyarray(rawFrameset.get_color_frame().get_data())
         #fetchedIRFrame = np.asanyarray(rawFrameset.get_infrared_frame(2).get_data())
         fetchedDepthFrame = np.asanyarray(align.process(rawFrameset).get_depth_frame().get_data())
         rawFrame = {
@@ -64,6 +62,7 @@ def _encodingFunc():
         # Compression into single JPEG is also needed as streaming this via
         # e.g. FFMPEG is possible in this manner
         scaling_factor = (depth_feature_range_max/depth_max_input)
+        colorFrame = cv2.cvtColor(colorFrame, cv2.COLOR_BGR2RGB)
         depthFrame = (scaling_factor * depthFrame).astype('uint8')
         depthFrame = np.dstack((depthFrame, depthFrame, depthFrame))
         combinedFrame = np.hstack((colorFrame, depthFrame))
