@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from flask import Flask, render_template, Response
+from flask import Flask, Response
 from camera_realsense_mp import Camera
 import datetime
 

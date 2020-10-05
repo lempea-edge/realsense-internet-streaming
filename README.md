@@ -28,8 +28,14 @@ requirements.txt, and can be installed using:
 ```
 pip3 install -r requirements.txt
 ```
+In case the Numpy installation via pip3 throws an error related to the package
+'Cython' not being found, run the following before re-running the command
+above:
+```
+pip3 install Cython
+```
 
 ### Acknowledgements
 The observer pattern implementation used for serving the JPEG frames to
 multiple clients is borrowed from:
-https://github.com/miguelgrinberg/flask-video-streaming/tree/v1
+https://github.com/miguelgrinberg/flask-video-streaming
