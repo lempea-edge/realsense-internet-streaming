@@ -71,7 +71,7 @@ class BaseCamera(object):
         # wait for a signal from the camera thread
         BaseCamera.event.wait()
         BaseCamera.event.clear()
-        
+
         try:
             return BaseCamera.frame[streamType]
         except:
@@ -84,7 +84,7 @@ class BaseCamera(object):
         # wait for a signal from the camera thread
         BaseCamera.event.wait()
         BaseCamera.event.clear()
-        
+
         try:
             return BaseCamera.frame
         except:
@@ -107,8 +107,8 @@ class BaseCamera(object):
         raise RuntimeError('Must be implemented by subclasses.')
 
     @staticmethod
-    def frames(cls):
-        """"Generator that returns frames from the camera."""
+    def frames():
+        """Generator that returns frames from the camera."""
         raise RuntimeError('Must be implemented by subclasses.')
 
     @classmethod
