@@ -19,7 +19,7 @@ jobs = None
 jpeg = TurboJPEG()
 
 def _pipelineFunc():
-    print("starting pipeline!")
+    print("Starting pipeline...")
     global rawFrames
     global pipeline
     global depth_scale
@@ -44,7 +44,7 @@ def _pipelineFunc():
         })
 
 def _encodingFunc():
-    print("starting encoder!")
+    print("Starting encoder...")
     global rawFrames
     global encodedFrames
 
@@ -102,7 +102,7 @@ class Camera(BaseCamera):
 
     @classmethod
     def start_jobs(self):
-        print("starting jobs...")
+        print("Starting jobs...")
         global jobs
         global rawFrames
         global encodedFrames
@@ -113,7 +113,6 @@ class Camera(BaseCamera):
         encodedFrames = multiprocessing.Queue(10)
         for job in jobs:
             job.start()
-        print("...started jobs!")
 
     @classmethod
     def terminate_jobs(self):
