@@ -10,6 +10,7 @@ import signal
 import sys
 import time
 import requests
+from gps import GPS
 
 # Set up Intel RealSense camera pipeline
 w, h = 640, 480
@@ -51,12 +52,9 @@ def _sendVideoData():
                 video_destination,
                 data=gen_frame(),
                 headers={
-                    "Content-Type": "multipart/x-mixed-replace; boundary=--frame"},
-                verify=False)
-            # verify=False causes requests to not verify the origin of the
-            # server's SSL certificate, which is useful in development e.g.
-            # when working with self-signed certificates. This option should be
-            # *True* in production.
+                    "Content-Type": "multipart/x-mixed-replace; boundary=--frame;",
+                    "Content-Resolution": "1280x480x3"},
+                verify=True)
         except Exception as e:
             print(e)
             print("_sendVideoData failed. Retrying in", retry_interval, "second(s)")
