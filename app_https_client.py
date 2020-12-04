@@ -29,6 +29,7 @@ jpeg = TurboJPEG()
 video_destination = None
 gps_destination = None
 retry_interval = None
+stream_id = None
 
 
 def gen_frame():
@@ -53,7 +54,8 @@ def _sendVideoData():
                 data=gen_frame(),
                 headers={
                     "Content-Type": "multipart/x-mixed-replace; boundary=--frame;",
-                    "Content-Resolution": "1280x480x3"},
+                    "Content-Resolution": "1280x480x3",
+                    "Stream-ID": stream_id},
                 verify=True)
         except Exception as e:
             print(e)
@@ -207,12 +209,21 @@ if __name__ == "__main__":
         "--retry_interval",
         help="Interval (in seconds) after which application will attempt to establish HTTPS link again after a failure.",
         default=2,
-        type=check_positive)
+        type=check_positive
+    )
+    parser.add_argument(
+        "-s",
+        "--stream_id",
+        help="StreamID is a string that uniquely identifies the video stream to the destination.",
+        default="default-streamID",
+        type=str
+    )
 
     args = parser.parse_args()
     video_destination = args.video_destination
     gps_destination = args.gps_destination
     retry_interval = args.retry_interval
+    stream_id = args.stream_id
 
     signal.signal(signal.SIGINT, exit_signal_handler)
 
