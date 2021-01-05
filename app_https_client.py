@@ -13,7 +13,6 @@ import requests
 from gps import GPS
 
 # Set up Intel RealSense camera pipeline
-w, h = 640, 480
 pipeline = None
 depth_scale = None
 
@@ -30,7 +29,9 @@ video_destination = None
 gps_destination = None
 retry_interval = None
 stream_id = None
-
+w = None
+h = None
+frame_rate = None
 
 def gen_frame():
     global encodedFrames
@@ -54,7 +55,7 @@ def _sendVideoData():
                 data=gen_frame(),
                 headers={
                     "Content-Type": "multipart/x-mixed-replace; boundary=--frame;",
-                    "Content-Resolution": "1280x480x3",
+                    "Content-Resolution": str(2*w) + "x" + str(h) + "x3",
                     "Stream-ID": stream_id},
                 verify=True)
         except Exception as e:
@@ -72,8 +73,8 @@ def _pipelineFunc():
     align = rs.align(rs.stream.color)
     colorizer = rs.colorizer()
     config = rs.config()
-    config.enable_stream(rs.stream.color, w, h, rs.format.rgb8, 30)
-    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, 30)
+    config.enable_stream(rs.stream.color, w, h, rs.format.rgb8, frame_rate)
+    config.enable_stream(rs.stream.depth, w, h, rs.format.z16, frame_rate)
     profile = pipeline.start(config)
     depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
     print("Depth scale is:", depth_scale)
@@ -130,11 +131,14 @@ def _encodingFunc():
 
 def _sendGPSData():
     try:
-        r = requests.post(gps_destination, json=GPS.getGPSData(), verify = False)
-        # verify=False causes requests to not verify the origin of the
-        # server's SSL certificate, which is useful in development e.g.
-        # when working with self-signed certificates. This option should be
-        # *True* in production.
+        GPS.startFetchThread()
+        while True:
+            r = requests.post(gps_destination, json=GPS.getGPSData(), verify=True)
+            # verify=False causes requests to not verify the origin of the
+            # server's SSL certificate, which is useful in development e.g.
+            # when working with self-signed certificates. This option should be
+            # *True* in production.
+            time.sleep(1)
     except Exception as e:
         print(e)
         print("_sendGPSData failed. Retrying in", retry_interval, "second(s)")
@@ -218,12 +222,36 @@ if __name__ == "__main__":
         default="default-streamID",
         type=str
     )
+    parser.add_argument(
+        "-x",
+        "--frame_width",
+        help="The width of the camera image frame in pixels.",
+        default=640,
+        type=int
+    )
+    parser.add_argument(
+        "-y",
+        "--frame_height",
+        help="The height of the camera image frame in pixels.",
+        default=480,
+        type=int
+    )
+    parser.add_argument(
+        "-f",
+        "--frame_rate",
+        help="The framerate of the camera video input (fps).",
+        default=30,
+        type=int
+    )
 
     args = parser.parse_args()
     video_destination = args.video_destination
     gps_destination = args.gps_destination
     retry_interval = args.retry_interval
     stream_id = args.stream_id
+    w = int(args.frame_width)
+    h = int(args.frame_height)
+    frame_rate = int(args.frame_rate)
 
     signal.signal(signal.SIGINT, exit_signal_handler)
 
