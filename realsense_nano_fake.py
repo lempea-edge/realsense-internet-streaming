@@ -56,13 +56,16 @@ def gen_frame_fake():
     debug = True
     frameNumberDebug = 1
     while True:
+        time.sleep(0.01)
         debugFile = "debug-images/{:04d}".format(frameNumberDebug)
         if not path.exists(debugFile):
+            sys.exit(0)
             frameNumberDebug = 1
             debugFile = "debug-images/{:04d}".format(frameNumberDebug)
         if not path.exists(debugFile):
             print("Error: debug images dir or file ", debugFile, "does not exist!")
         with open(debugFile, 'rb') as f:
+            print("Frame number: ", frameNumberDebug)
             frame = f.read()
             frameNumberDebug += 1
 
