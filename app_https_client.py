@@ -117,10 +117,8 @@ def _encodingFunc():
         # Compression into single JPEG is also needed as streaming this via
         # e.g. FFMPEG is possible in this manner
         scaling_factor = (depth_feature_range_max / depth_max_input)
-        colorFrameCuda = cv2.cuda_GpuMat()
-        colorFrameCuda.upload(colorFrame)
-        colorFrame = cv2.cuda.cvtColor(
-            colorFrameCuda, cv2.COLOR_BGR2RGB).download()
+        colorFrame = cv2.cvtColor(
+            colorFrame, cv2.COLOR_BGR2RGB)
         depthFrame = (scaling_factor * depthFrame).astype('uint8')
         depthFrame = np.dstack((depthFrame, depthFrame, depthFrame))
         combinedFrame = np.hstack((colorFrame, depthFrame))
