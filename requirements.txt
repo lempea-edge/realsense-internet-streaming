@@ -4,3 +4,4 @@ greenlet==0.4.17
 adafruit-circuitpython-gps
 PyTurboJPEG
 pyrealsense2
+requests
