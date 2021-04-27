@@ -57,7 +57,7 @@ def _sendVideoData():
                     "Content-Type": "multipart/x-mixed-replace; boundary=--frame;",
                     "Content-Resolution": str(2*w) + "x" + str(h) + "x3",
                     "Stream-ID": stream_id},
-                verify=True)
+                verify=False)
         except Exception as e:
             print(e)
             print("_sendVideoData failed. Retrying in", retry_interval, "second(s)")
