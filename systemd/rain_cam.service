@@ -1,0 +1,19 @@
+[Unit]
+Description=Kaívokatu Camera service for Rain
+After=multi-user.target
+#After=reset_d455
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=lempeanano1
+Environment="PYTHONPATH=${PYTHONPATH}:/usr/local/lib"
+WorkingDirectory=/home/lempeanano1/realsense-internet-streaming/
+ExecStart=/home/lempeanano1/realsense-internet-streaming/flow-start.sh
+
+
+[Install]
+WantedBy=default.target
+
