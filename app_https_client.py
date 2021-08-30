@@ -11,6 +11,8 @@ import sys
 import time
 import requests
 from gps import GPS
+import os
+import psutil
 
 # Set up Intel RealSense camera pipeline
 pipeline = None
@@ -32,6 +34,12 @@ stream_id = None
 w = None
 h = None
 frame_rate = None
+
+
+def graceful_exit():
+    current_system_pid = os.getpid()
+    ThisSystem = psutil.Process(current_system_pid)
+    ThisSystem.terminate()
 
 def gen_frame():
     global encodedFrames
@@ -57,14 +65,23 @@ def _sendVideoData():
                     "Content-Type": "multipart/x-mixed-replace; boundary=--frame;",
                     "Content-Resolution": str(2*w) + "x" + str(h) + "x3",
                     "Stream-ID": stream_id},
-                verify=True)
+                verify=args.certificate_not_to_be_verified)
         except Exception as e:
             print(e)
-            print("_sendVideoData failed. Retrying in", retry_interval, "second(s)")
-            time.sleep(retry_interval)
+            print("_sendVideoData failed, exiting.")
+            graceful_exit()
 
 
 def _pipelineFunc():
+    try:
+        _actualPipeline()
+    except Exception as e:
+        print("Exception in pipeline:")
+        print(e)
+        graceful_exit()
+
+
+def _actualPipeline():
     print("Starting pipeline...")
     global rawFrames
     global pipeline
@@ -79,7 +96,11 @@ def _pipelineFunc():
     depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
     print("Depth scale is:", depth_scale)
     while True:
-        rawFrameset = pipeline.wait_for_frames()
+        try:
+            rawFrameset = pipeline.wait_for_frames()
+        except:
+            print("Seems camera is not ready... exiting.")
+            graceful_exit()
         fetchedColorFrame = np.asanyarray(
             rawFrameset.get_color_frame().get_data())
         fetchedDepthFrame = np.asanyarray(
@@ -243,6 +264,12 @@ if __name__ == "__main__":
         default=30,
         type=int
     )
+    parser.add_argument(
+        "--certificate_not_to_be_verified",
+        help="Do not check certificate (e.g. if target IP is not part of certificate)",
+        default=False,
+        action='store_true'
+    )
 
     args = parser.parse_args()
     video_destination = args.video_destination
@@ -255,4 +282,8 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, exit_signal_handler)
 
-    start_jobs()
+    try:
+        start_jobs()
+    except Exception as e:
+        print(e)
+        graceful_exit()
